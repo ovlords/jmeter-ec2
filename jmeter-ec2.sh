@@ -368,8 +368,8 @@ function runsetup() {
             echo
         fi
 
-        # Tell install.sh to attempt to install JAVA
-        attemptjavainstall=1
+        # Tell install.sh to attempt to install JAVA (Disable as we're using a Java AMI; set attemptjavainstall to 0)
+        attemptjavainstall=0
     else # the property REMOTE_HOSTS is set so we wil use this list of predefined hosts instead
         hosts=(`echo $REMOTE_HOSTS | tr "," "\n" | tr -d ' '`)
         instance_count=${#hosts[@]}
@@ -424,11 +424,12 @@ function runsetup() {
 	    echo
 
 	    # Install test software
+	    # (source bash_profile to obtain http_proxy; https_proxy; no_proxy)
 	    echo "running install.sh on $instance_count server(s)..."
 	    for host in ${hosts[@]} ; do
 	        (ssh -nq -o StrictHostKeyChecking=no \
 	            -i "$PEM_PATH/$PEM_FILE" $USER@$host -p $REMOTE_PORT \
-	            "$REMOTE_HOME/install.sh $REMOTE_HOME $attemptjavainstall $JMETER_VERSION"\
+	            "source ~ec2-user/.bash_profile; $REMOTE_HOME/install.sh $REMOTE_HOME $attemptjavainstall $JMETER_VERSION"\
 	            > $project_home/$DATETIME-$host-install.out) &
 	    done
 
